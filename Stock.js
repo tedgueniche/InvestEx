@@ -31,6 +31,15 @@ var Stock = function(symbol) {
 	this.prices = [];
 };
 
+/**
+ * Calculate the compound average return per year given an overal return rate and a number of years
+ * @param  {Double} returnValue The overal return as a percentage. Eg: 2% would be 0.02
+ * @param  {Integer} numberYears The number of years
+ */
+Stock.calcAvgReturnPerYear = function(returnValue, numberYears) {
+	return Math.pow((1 + returnValue), (1 / numberYears)) - 1;
+};
+
 Stock.prototype.getMetaInformation = function() {};
 
 /**
@@ -41,6 +50,8 @@ Stock.prototype.getMetaInformation = function() {};
  * @param  {Function(errorMessage)} error   Callback when the price could not be found
  */
 Stock.prototype.getClosingPrice = function(date, success, error) {
+	success = success || function(price) { console.log("Closing price: "+ price); };
+	error = error || function(errorMessage) { console.error(errorMessage); };
 
 	//verify this price is not already in cache
 	var dateString = YahooAPI.getDateString(date);
@@ -65,6 +76,8 @@ Stock.prototype.getClosingPrice = function(date, success, error) {
  * @param  {Function(errorMessage)} error   Callback when the return could not be calculated
  */
 Stock.prototype.calcReturn = function(startDate, endDate, success, error) {
+	success = success || function(price) { console.log("Returns: "+ (price * 100) + "%"); };
+	error = error || function(errorMessage) { console.error(errorMessage); };
 
 	var self = this;
 	YahooAPI.getQuote(self.symbol, startDate, function(startPrice) {
@@ -72,7 +85,6 @@ Stock.prototype.calcReturn = function(startDate, endDate, success, error) {
 		YahooAPI.getQuote(self.symbol, endDate, function(endPrice) {
 
 			var result = (endPrice / startPrice) - 1;
-			console.log("Returns calculated: " + (result * 100) + "%");
 			success(result);
 
 		}, error);
